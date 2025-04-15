@@ -10,9 +10,12 @@ public class Tile {
 
     @Override
     public String toString(){
+        if (!isRevealed) {
+            return "_";
+        }
         if (this.isBomb) {
             return "X";
         }
-        return String.valueOf(numberOfNeighboringBombs);
+        return numberofNeighboringBombs == 0 ? " " : String.valueOf(numberOfNeighboringBombs);
     }
 }
