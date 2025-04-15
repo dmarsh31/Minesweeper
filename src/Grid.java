@@ -24,9 +24,9 @@ public class Grid {
     @Override
     public String toString(){
         StringBuilder returnString = new StringBuilder();
-        for(int i = 0; i < height; i++){
-            for(int j = 0; j < width; j++){
-                returnString.append(grid[i][j].toString() + "\t");
+        for(int j = 0; j < height; j++){
+            for(int i = 0; i < width; i++){
+                returnString.append(grid[i][j].toString()).append("\t");
             }
             returnString.append("\n");
         }
@@ -52,11 +52,32 @@ public class Grid {
                 numberOfBombs--;
             }
         }
+        calculateNeighborBombCounts();
     }
+
+    //checking the neighboring tiles how many bombs are in the area
+    private void calculateNeighborBombCounts() {
+             for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int count = 0;
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        int nx = i + dx;
+                        int ny = j + dy;
+                        if (inBounds(nx, ny) && grid[nx][ny].isBomb) {
+                            count++;
+                        }
+                    }
+                }
+                grid[i][j].numberOfNeighboringBombs = count;
+            }
+        }
+    }
+        
 
     public void pickSquare(int w, int h){
         if (grid[w][h].isBomb) {
-            System.out.println("YOU LOOSE");
+            System.out.println("YOU LOSE");
             System.exit(1);
         }
         if (!gameStarted) {
@@ -86,6 +107,32 @@ public class Grid {
     private boolean inBounds(int width, int height){
         return width >= 0 && width < this.width && height >= 0 && height < this.height;
     }
+
+
+    //shows all the bombs on the board if the player loses
+    private void revealAllBombs() {
+        for (int i = 0; i < width; i++) 
+            for (int j = 0; j < height; j++) 
+                if (grid[i][j].isBomb) 
+                    grid[i][j].isRevealed = true;
+    }
+
+
+    //checks if the user has won the game, if there's still a bomb hidden, the game isn't done
+    private boolean checkWin(){
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+                if (grid[i][j].isBomb && grid[i][j].isRevealed
+                    return false;
+        return true;
+    }
+
+    public Tile[][] getGrid() {
+        return grid;
+    }
+
+    public boolean hasWon() {
+        return hasWon;
 
 
 }
