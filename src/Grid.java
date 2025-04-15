@@ -2,19 +2,19 @@ import java.util.Random;
 
 public class Grid {
     private int width,height;
-    private Tile[][] grid;
-    private boolean gameStarted;
+    private Cell[][] grid;
+    private boolean gameStarted,hasWon;
 
     public Grid(int width, int height){
         this.width = width;
         this.height = height;
-        this.grid = new Tile[width][height];
+        this.grid = new Cell[width][height];
         this.gameStarted = false;
 
         //fills grid
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                this.grid[i][j] = new Tile();
+                this.grid[i][j] = new Cell();
             }
         }
     }
@@ -57,7 +57,7 @@ public class Grid {
 
     //checking the neighboring tiles how many bombs are in the area
     private void calculateNeighborBombCounts() {
-             for (int i = 0; i < width; i++) {
+            for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 int count = 0;
                 for (int dx = -1; dx <= 1; dx++) {
@@ -75,20 +75,21 @@ public class Grid {
     }
         
 
-    public void pickSquare(int w, int h){
+    public void pickCell(int w, int h){
         if (grid[w][h].isBomb) {
             System.out.println("YOU LOSE");
             System.exit(1);
         }
+        //fills bombs after game has started to ensure first click isn't a bomb
         if (!gameStarted) {
             grid[w][h].isRevealed = true;
             this.fillBombs();
         }
-        checkTile(w, h);
+        checkCell(w, h);
     }
 
     //recursively checks neighboring tiles, setting their numberOfNeighboringBombs field and isRevealed field
-    private void checkTile(int w, int h){
+    private void checkCell(int w, int h){
         grid[w][h].isRevealed = true;
 
         //checks all adjacent squares
@@ -97,7 +98,7 @@ public class Grid {
                 if (inBounds(i, j) && !grid[i][j].isRevealed) {
                     if (grid[i][j].isBomb) {
                         grid[w][h].numberOfNeighboringBombs++;
-                    }else checkTile(i, j);
+                    }else checkCell(i, j);
                 }
             }
         }
@@ -122,17 +123,16 @@ public class Grid {
     private boolean checkWin(){
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
-                if (grid[i][j].isBomb && grid[i][j].isRevealed
+                if (grid[i][j].isBomb && grid[i][j].isRevealed)
                     return false;
         return true;
     }
 
-    public Tile[][] getGrid() {
+    public Cell[][] getGrid() {
         return grid;
     }
 
     public boolean hasWon() {
         return hasWon;
-
-
+    }
 }

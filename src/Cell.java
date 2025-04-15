@@ -1,8 +1,8 @@
-public class Tile {
+public class Cell {
     public boolean isBomb,isRevealed;
     public int numberOfNeighboringBombs;
 
-    public Tile(){
+    public Cell(){
         this.isBomb = false;
         this.isRevealed = false;
         this.numberOfNeighboringBombs = 0;
@@ -10,12 +10,12 @@ public class Tile {
 
     @Override
     public String toString(){
+        if (isBomb) {
+            return "X";
+        }
         if (!isRevealed) {
             return "_";
         }
-        if (this.isBomb) {
-            return "X";
-        }
-        return numberofNeighboringBombs == 0 ? " " : String.valueOf(numberOfNeighboringBombs);
+        return numberOfNeighboringBombs == 0 ? " " : String.valueOf(numberOfNeighboringBombs);
     }
 }
