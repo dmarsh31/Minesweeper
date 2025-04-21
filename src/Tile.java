@@ -1,21 +1,22 @@
-public class Tile {
-    public boolean isBomb,isRevealed;
-    public int numberOfNeighboringBombs;
+public class Cell {
+    public boolean isMine,isRevealed, isFlagged;
+    public int numberOfNeighboringMines;
 
-    public Tile(){
-        this.isBomb = false;
+    public Cell(){
+        this.isMine = false;
         this.isRevealed = false;
-        this.numberOfNeighboringBombs = 0;
+        this.isFlagged = false;
+        this.numberOfNeighboringMines = 0;
     }
 
     @Override
     public String toString(){
         if (!isRevealed) {
-            return "_";
+            return isFlagged ? "F" : "_";
         }
-        if (this.isBomb) {
+        if (isMine) { 
             return "X";
         }
-        return numberofNeighboringBombs == 0 ? " " : String.valueOf(numberOfNeighboringBombs);
+        return numberOfNeighboringMines == 0 ? " " : String.valueOf(numberOfNeighboringMines);
     }
 }
