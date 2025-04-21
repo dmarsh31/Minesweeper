@@ -2,19 +2,19 @@ import java.util.Random;
 
 public class Grid {
     private int width,height;
-    private Tile[][] grid;
+    private Cell[][] grid;
     private boolean gameStarted;
 
     public Grid(int width, int height){
         this.width = width;
         this.height = height;
-        this.grid = new Tile[width][height];
+        this.grid = new Cell[width][height];
         this.gameStarted = false;
 
         //fills grid
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                this.grid[i][j] = new Tile();
+                this.grid[i][j] = new Cell();
             }
         }
     }
@@ -34,105 +34,144 @@ public class Grid {
     }
 
 
-    //fills the grid with bombs, this method should be called after the first click to ensure the user doesn't immediately loose
-    private void fillBombs(){
-        //40 bombs is the typical number of bombs for normal mode on a 16x16 grid
+    //fills the grid with mines, this method should be called after the first click to ensure the user doesn't immediately lose
+    private void fillMines(int initialX, initialY){
+        //40 mines is the typical number of mines for normal mode on a 16x16 grid
         //but this might need to be increased
-        int numberOfBombs = 40;
+        int numberOfMines = 40;
         int tempWidth, tempHeight;
         
         Random r = new Random();
 
-        while (numberOfBombs != 0) {
+        while (numberOfMines != 0) {
             tempWidth = r.nextInt(width);
             tempHeight = r.nextInt(height);
 
-            if (!grid[tempWidth][tempHeight].isBomb && !grid[tempWidth][tempHeight].isRevealed) {
-                grid[tempWidth][tempHeight].isBomb = true;
-                numberOfBombs--;
+            //prevents placing mine on the first click
+            if ((tempWidth == initialX && tempHeight == initialY) || grid[tempWidth][tempHeight].isMine) {
+                continue;
             }
+            grid[tempWidth][tempHeight].isMine = true;
+            numberOfMines--;
         }
-        calculateNeighborBombCounts();
+        calculateNeighborMineCounts();
     }
 
-    //checking the neighboring tiles how many bombs are in the area
-    private void calculateNeighborBombCounts() {
-             for (int i = 0; i < width; i++) {
+    //checks how many mines surround the cell
+    //nested loop checks through all 8 neighbors and the cell itself
+    private void calculateNeighborMineCounts() {
+            for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 int count = 0;
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
                         int nx = i + dx;
                         int ny = j + dy;
-                        if (inBounds(nx, ny) && grid[nx][ny].isBomb) {
+                        if (inBounds(nx, ny) && grid[nx][ny].isMine) {
                             count++;
                         }
                     }
                 }
-                grid[i][j].numberOfNeighboringBombs = count;
+                grid[i][j].numberOfNeighboringMines = count;
             }
         }
     }
+    
         
+    //mines will never spawn on the first click
+    public void pickSquare(int w, int h) {
+    	//prevents flag cells from getting revealed, player has to unflag first to reveal cell
+    	if (!inBounds(w, h)) {
+            System.out.println("Invalid selection.");
+            return;
+        }
 
-    public void pickSquare(int w, int h){
-        if (grid[w][h].isBomb) {
+        Cell cell = grid[w][h];
+
+        if (cell.isFlagged) {
+            System.out.println("Can't pick a flagged square. Unflag first.");
+            return;
+        }
+    	
+        if (!gameStarted) {
+            fillMines(w, h);
+            gameStarted = true;
+        }
+
+        if (grid[w][h].isMine) {
+            revealAllMines();
             System.out.println("YOU LOSE");
             System.exit(1);
         }
-        if (!gameStarted) {
-            grid[w][h].isRevealed = true;
-            this.fillBombs();
+
+        checkCell(w, h);
+        
+        if (checkWin()) {
+            revealAllMines();
+            System.out.println("YOU WIN");
+            System.exit(0);
         }
-        checkTile(w, h);
     }
 
-    //recursively checks neighboring tiles, setting their numberOfNeighboringBombs field and isRevealed field
-    private void checkTile(int w, int h){
+    //recursively checks neighboring cells, setting their numberOfNeighboringMines field and isRevealed field
+    private void checkCell(int w, int h){
         grid[w][h].isRevealed = true;
 
         //checks all adjacent squares
         for (int i = w-1; i < w+2; i++) {
             for (int j = h-1; j < h+2; j++) {
                 if (inBounds(i, j) && !grid[i][j].isRevealed) {
-                    if (grid[i][j].isBomb) {
-                        grid[w][h].numberOfNeighboringBombs++;
-                    }else checkTile(i, j);
+                    if (grid[i][j].isMine) {
+                        grid[w][h].numberOfNeighboringMines++;
+                    }else checkCell(i, j);
                 }
             }
         }
     }
 
     //returns weather the position is in bounds of the grid
-    private boolean inBounds(int width, int height){
-        return width >= 0 && width < this.width && height >= 0 && height < this.height;
+    private boolean inBounds(int x, int y) {
+        return x >= 0 && x < width && y >= 0 && y < height;
     }
+    
+    
+    //flags cells that are potentially mines
+    public void FlagCell(int x, int y) {
+        if (!inBounds(x, y)) {
+            System.out.println("Invalid coordinates.");
+            return;
+        }
 
+        Cell cell = grid[x][y];
 
-    //shows all the bombs on the board if the player loses
-    private void revealAllBombs() {
-        for (int i = 0; i < width; i++) 
-            for (int j = 0; j < height; j++) 
-                if (grid[i][j].isBomb) 
+        if (cell.isRevealed) {
+            System.out.println("Can't flag a revealed cell.");
+            return;
+        }
+
+        cell.isFlagged = !cell.isFlagged;
+    }
+    
+
+    private void revealAllMines() {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (grid[i][j].isMine) {
                     grid[i][j].isRevealed = true;
+                }
+            }
+        }
     }
 
-
-    //checks if the user has won the game, if there's still a bomb hidden, the game isn't done
-    private boolean checkWin(){
-        for (int i = 0; i < width; i++)
-            for (int j = 0; j < height; j++)
-                if (grid[i][j].isBomb && grid[i][j].isRevealed
+    private boolean checkWin() {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (!grid[i][j].isMine && !grid[i][j].isRevealed) {
                     return false;
+                }
+            }
+        }
         return true;
     }
-
-    public Tile[][] getGrid() {
-        return grid;
-    }
-
-    public boolean hasWon() {
-        return hasWon;
-
 
 }
