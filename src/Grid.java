@@ -110,7 +110,6 @@ public class Grid {
             for (int j = h-1; j < h+2; j++) {
                 if (inBounds(i, j) && !grid[i][j].isRevealed) {
                     if (grid[i][j].isMine) {
-                        grid[w][h].numberOfNeighboringMines++;
                     }else checkCell(i, j);
                 }
             }

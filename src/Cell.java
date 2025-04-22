@@ -11,12 +11,13 @@ public class Cell {
 
     @Override
     public String toString(){
-        if (!isRevealed) {
-            return isFlagged ? "F" : "_";
-        }
         if (isMine) { 
             return "X";
         }
+        if (!isRevealed) {
+            return isFlagged ? "F" : "_";
+        }
+
         return numberOfNeighboringMines == 0 ? " " : String.valueOf(numberOfNeighboringMines);
     }
 }
